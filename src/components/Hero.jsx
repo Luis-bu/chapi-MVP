@@ -2,20 +2,24 @@ import ScrollExpandMedia from './ScrollExpandMedia.jsx'
 import { IconStar } from './icons.jsx'
 import { WHATSAPP_URL, RATING_TEXT } from '../constants.js'
 import { track } from '../utils/track.js'
+import heroVideo from '@/assets/video/hero.mp4'
+import heroVideoMobile from '@/assets/video/hero-mobile.mp4'
+import heroPoster from '@/assets/video/hero-poster.jpg'
 
 function Hero() {
   return (
     <section id="top" className="hero-section">
       <ScrollExpandMedia
         mediaType="video"
-        mediaSrc="/hero-media.mp4"
-        mediaSrcMobile="/hero-media-mobile.mp4"
-        posterSrc="/hero-media-poster.jpg"
-        bgImageSrc="/hero-bg.jpg"
-        title="100% Vegana"
+        mediaSrc={heroVideo}
+        mediaSrcMobile={heroVideoMobile}
+        posterSrc={heroPoster}
+        title="Comida colombiana"
+        tagline="100% vegana · 0% aburrida"
         splitIndex={1}
         date="QUINTA CAMACHO · BOGOTÁ"
         scrollToExpand="Desliza para descubrir ↓"
+        decorationSrc="/logo-transparent.png"
       >
         <div className="hero-reveal">
           <span className="hero-tagline">Plant Based Fast Food</span>

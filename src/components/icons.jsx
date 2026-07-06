@@ -73,16 +73,6 @@ export function IconClock({ className }) {
   )
 }
 
-export function IconImagePlaceholder({ className }) {
-  return (
-    <svg className={className} {...base} aria-hidden="true">
-      <rect x="5" y="9" width="38" height="30" rx="5" {...stroke} />
-      <circle cx="17" cy="19" r="3.6" {...stroke} />
-      <path d="M9 33l10-10 7 7 6-8 10 11" {...stroke} />
-    </svg>
-  )
-}
-
 export function IconLeaf({ className }) {
   return (
     <svg className={className} {...base} aria-hidden="true">

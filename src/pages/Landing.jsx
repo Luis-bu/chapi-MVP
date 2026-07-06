@@ -12,9 +12,9 @@ function Landing() {
     <>
       <Hero />
       <FeaturedDishes />
-      <About />
       <Reviews />
       <Location />
+      <About />
     </>
   )
 }

@@ -30,26 +30,102 @@ npm i -g vercel
 vercel --prod
 ```
 
-## Assets reales ya integrados
+## Assets
 
-- `public/logo.jpg`: logo real de ChapiYork (header, footer, favicon, og:image).
-- `public/hero-media.mp4` (variante desktop) + `public/hero-media-mobile.mp4` (variante mobile) + `public/hero-media-poster.jpg`: video real "Picada Mundialista Vegana x ChapiYork" usado en el hero interactivo. El archivo original (97s, 640px, 11.7MB) se recortó a un loop de 10s y se generaron 2 variantes livianas — el `<video>` en `ScrollExpandMedia.jsx` sirve la mobile vía `<source media="(max-width: 767px)">` y la desktop como fallback:
+Todos los assets viven dentro del repo (cero rutas locales de máquina, cero CDNs de terceros para
+contenido del sitio — la única excepción es el embed en vivo de Google Maps en `Location.jsx`, que
+es un servicio, no contenido).
 
-  ```bash
-  # Desktop (~720px de ancho, ~2.1MB)
-  ffmpeg -i original.mp4 -t 10 -an -vf "scale=720:-2,fps=24" \
-    -c:v libx264 -preset slow -crf 26 -movflags +faststart -pix_fmt yuv420p hero-media.mp4
+### Estructura de carpetas
 
-  # Mobile (~480px de ancho, ~0.7MB)
-  ffmpeg -i original.mp4 -t 10 -an -vf "scale=480:-2,fps=24" \
-    -c:v libx264 -preset slow -crf 30 -movflags +faststart -pix_fmt yuv420p hero-media-mobile.mp4
+```
+public/                    Solo lo que necesita URL fija (referenciado por ruta absoluta, no por import)
+  favicon.ico
+  apple-touch-icon.png
+  og-image.jpg
+  robots.txt
+  sitemap.xml
+  logo-transparent.png    Sticker del logo (PNG con transparencia) — header y decoración del hero
 
-  # Poster (primer frame de la variante desktop)
-  ffmpeg -i hero-media.mp4 -vframes 1 -q:v 3 hero-media-poster.jpg
-  ```
+src/assets/                 Todo lo demás, importado desde componentes con el alias @ (→ src/)
+  brand/
+    logo.jpg                Logo real de ChapiYork (Header, Footer)
+  platos/
+    changua-el-dorado.jpg   PLACEHOLDER — ver "Placeholders pendientes"
+    chapiyorker.jpg         PLACEHOLDER
+    trilogia-de-fritos.jpg  PLACEHOLDER
+  local/                    Vacía (solo .gitkeep) — ver "Placeholders pendientes"
+  video/
+    hero.mp4                Video real del hero (variante desktop)
+    hero-mobile.mp4         Video real del hero (variante mobile, servida bajo 767px)
+    hero-poster.jpg         Primer frame del video, real (poster + fallback si el video falla)
+  fonts/
+    baloo-2-variable.woff2  Baloo 2, pesos 500–800 (variable font, un solo archivo cubre el rango)
+    poppins-400.woff2
+    poppins-500.woff2
+    poppins-600.woff2
+    poppins-700.woff2
+```
 
-  Si el dueño sube un video de reemplazo, volver a correr estos 3 comandos con el archivo nuevo como `original.mp4` (ajustar `-t` si el clip fuente es más corto que 10s).
-- `public/og-image.jpg` (1200×630), `public/favicon.ico` y `public/apple-touch-icon.png` (180×180): generados a partir de `logo.jpg` (fondo naranja `#D9863A` + logo centrado para el og-image). Son placeholders razonables para la demo — reemplazar `og-image.jpg` por arte real antes de publicar (ver "Pre-lanzamiento").
+### Convención de nombres
+
+kebab-case descriptivo en español, sin tildes ni espacios, sin nombres genéricos de cámara/captura
+(`IMG_2034`, `captura-de-pantalla`, etc.) — el nombre debe decir qué es (`changua-el-dorado.jpg`,
+no `foto3.jpg`).
+
+### Por qué `public/` vs `src/assets/`
+
+- `public/` es para lo que necesita una **URL fija y predecible** independiente del hash de build:
+  `favicon.ico` (referenciado por convención del navegador), `robots.txt`/`sitemap.xml` (deben vivir
+  en la raíz del dominio), `og-image.jpg` (la URL va hardcodeada en meta tags que a veces cachean
+  crawlers externos).
+- `src/assets/` es para todo lo que un componente importa (`import logo from '@/assets/brand/logo.jpg'`).
+  Vite lo procesa, lo agrega al hash del build y falla el build si el archivo no existe — evita
+  referencias rotas silenciosas.
+
+### Fuentes (self-hosted)
+
+Baloo 2 y Poppins se cargaban antes desde `fonts.googleapis.com` (dependencia externa). Ahora se
+sirven desde `src/assets/fonts/` vía `@font-face` en `src/index.css`, subset `latin` únicamente
+(cubre español: á, é, í, ó, ú, ñ, ü, ·, etc. — todos están en el rango `U+0000-00FF`). Si en algún
+momento el sitio necesita otro idioma/alfabeto, hay que volver a descargar el subset correspondiente
+desde Google Fonts y agregar el `@font-face` con su `unicode-range`.
+
+### Video del hero — cómo regenerarlo
+
+El video real es "Picada Mundialista Vegana x ChapiYork". El archivo original (97s, 640px, 11.7MB)
+se recortó a un loop de 10s y se generaron 2 variantes livianas:
+
+```bash
+# Desktop (~720px de ancho, ~2.1MB) → src/assets/video/hero.mp4
+ffmpeg -i original.mp4 -t 10 -an -vf "scale=720:-2,fps=24" \
+  -c:v libx264 -preset slow -crf 26 -movflags +faststart -pix_fmt yuv420p hero.mp4
+
+# Mobile (~480px de ancho, ~0.7MB) → src/assets/video/hero-mobile.mp4
+ffmpeg -i original.mp4 -t 10 -an -vf "scale=480:-2,fps=24" \
+  -c:v libx264 -preset slow -crf 30 -movflags +faststart -pix_fmt yuv420p hero-mobile.mp4
+
+# Poster (primer frame de la variante desktop) → src/assets/video/hero-poster.jpg
+ffmpeg -i hero.mp4 -vframes 1 -q:v 3 hero-poster.jpg
+```
+
+Si el dueño sube un video de reemplazo, correr estos 3 comandos con el archivo nuevo como
+`original.mp4` (ajustar `-t` si el clip fuente es más corto que 10s).
+
+`public/og-image.jpg` (1200×630), `public/favicon.ico` y `public/apple-touch-icon.png` (180×180)
+están generados a partir de `logo.jpg` (fondo naranja `#D9863A` + logo centrado para el og-image).
+Son placeholders razonables para la demo — reemplazar `og-image.jpg` por arte real antes de publicar
+(ver "Pre-lanzamiento").
+
+### Placeholders pendientes (reemplazar con material real del cliente)
+
+| Archivo | Qué es hoy | Medida recomendada |
+|---|---|---|
+| `src/assets/platos/changua-el-dorado.jpg` | Placeholder generado (fondo de color + texto) | Mínimo 800×800, foto real del plato |
+| `src/assets/platos/chapiyorker.jpg` | Placeholder generado | Mínimo 800×800, foto real del plato |
+| `src/assets/platos/trilogia-de-fritos.jpg` | Placeholder generado | Mínimo 800×800, foto real del plato |
+| `src/assets/local/` | Carpeta vacía (solo `.gitkeep`) | 1–3 fotos del ambiente/local, mínimo 1600×1200 (aún sin sección asignada en el diseño — decidir dónde va antes de agregarlas) |
+| `public/og-image.jpg` | Logo sobre fondo de color | 1200×630, pieza gráfica real para compartir en redes |
 
 ## Estructura de rutas
 
@@ -67,8 +143,8 @@ vercel --prod
 
 ## Rendimiento
 
-- Video del hero: `preload="metadata"`, `muted`, `playsinline`, poster estático instantáneo, variantes por viewport (ver arriba), y fallback automático a solo-imagen si el video falla (`onError`) o si `navigator.connection` reporta `saveData` o `effectiveType` 2g/3g.
-- `loading="lazy"` en las imágenes reales bajo el fold (logo del footer). El logo del header y el video/imagen del hero quedan eager a propósito. Los 3 platos destacados y las tarjetas de `/menu` todavía no tienen fotos reales (ver placeholders pendientes) — cuando se agreguen, las 3 destacadas de la landing deben quedar `eager` y el resto `loading="lazy"`.
+- Video del hero: `preload="metadata"`, `muted`, `playsinline`, poster estático instantáneo, variantes por viewport (ver arriba), y fallback automático a solo-imagen si el video falla (`onError`, que además loguea el `MediaError` real en consola para diagnóstico).
+- `loading="lazy"` en las imágenes reales bajo el fold (logo del footer). El logo del header, el video/imagen del hero y los 3 platos destacados de la landing quedan `eager` a propósito (above/near the fold); el resto queda `lazy`.
 - Bundle JS: ~342KB sin comprimir / **~112KB gzip** (bien debajo del límite de 300KB gzip) — no fue necesario aplicar code-splitting por ruta.
 
 ## Medición
@@ -79,12 +155,12 @@ vercel --prod
   - `menu_view` al montar la ruta `/menu`.
   - `como_llegar_click` en el botón "Cómo llegar" (Google Maps) de Ubicación.
 
-## Placeholders pendientes
+## Pendientes de confirmar con el dueño
 
-- Los 3 platos destacados en `src/data/menu.js` (`featuredDishes`: Changua "El Dorado", Chapiyorker, Trilogía de Fritos) tienen un recuadro con el texto "Foto próximamente" — reemplazar `menu-card-image-placeholder` por una `<img loading="eager">` con la foto real de cada plato. El resto del menú (`/menu`) se muestra solo en texto.
-- **Pendiente de confirmar con el dueño:** varios platos del menú real llevan ícono de "sin gluten" en Instagram (empanada, carimañola, arepas, pan de yuca, trilogía, patacón, alitas chipotle). El campo `glutenFree` en `src/data/menu.js` está en `false` para todos — verificar con el dueño antes de activarlo por plato.
-- **Pendiente de confirmar con el dueño:** los horarios en `src/data/info.js` (`hours`) son un estimado — confirmar antes de publicar el sitio (recuerda que también alimentan el JSON-LD, ver "SEO técnico").
-- `og-image.jpg` es un placeholder (fondo de color + logo) — reemplazar por una foto/arte real antes de lanzar.
+- Varios platos del menú real llevan ícono de "sin gluten" en Instagram (empanada, carimañola, arepas, pan de yuca, trilogía, patacón, alitas chipotle). El campo `glutenFree` en `src/data/menu.js` está en `false` para todos — verificar con el dueño antes de activarlo por plato.
+- Los horarios en `src/data/info.js` (`hours`) son un estimado — confirmar antes de publicar el sitio (recuerda que también alimentan el JSON-LD, ver "SEO técnico").
+
+(Para los placeholders de imágenes pendientes de reemplazar — fotos de platos, ambiente del local, og-image — ver la sección "Assets" arriba.)
 
 ## Pre-lanzamiento
 

@@ -1,9 +1,17 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { featuredDishes } from '../data/menu.js'
-import { IconImagePlaceholder } from './icons.jsx'
+import changuaElDoradoImg from '@/assets/platos/changua-el-dorado.jpg'
+import chapiyorkerImg from '@/assets/platos/chapiyorker.jpg'
+import trilogiaDeFritosImg from '@/assets/platos/trilogia-de-fritos.jpg'
 
 const tilt = ['tilt-l', 'tilt-r', 'tilt-l']
+
+const dishImages = {
+  'changua-el-dorado': changuaElDoradoImg,
+  chapiyorker: chapiyorkerImg,
+  'trilogia-de-fritos': trilogiaDeFritosImg,
+}
 
 function useSpotlight(ref) {
   useEffect(() => {
@@ -40,9 +48,8 @@ function FeaturedCard({ dish, index }) {
 
   return (
     <article ref={ref} className={`menu-card menu-card-featured ${tilt[index]}`}>
-      <div className="menu-card-image menu-card-image-placeholder">
-        <IconImagePlaceholder className="menu-card-placeholder-icon" />
-        <span>Foto próximamente</span>
+      <div className="menu-card-image">
+        <img src={dishImages[dish.slug]} alt={dish.name} className="menu-card-image-el" loading="eager" />
       </div>
       <div className="menu-card-body">
         <span className="menu-card-featured-tag">{dish.badge}</span>

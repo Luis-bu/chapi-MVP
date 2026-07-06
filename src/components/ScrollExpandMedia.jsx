@@ -6,10 +6,11 @@ function ScrollExpandMedia({
   mediaSrc,
   mediaSrcMobile,
   posterSrc,
-  bgImageSrc,
   title,
+  tagline,
   date,
   scrollToExpand,
+  decorationSrc,
   textBlend = false,
   splitIndex = 1,
   children,
@@ -130,16 +131,6 @@ function ScrollExpandMedia({
   return (
     <div ref={sectionRef} className="scroll-hero">
       <div className="scroll-hero-stage">
-        <motion.div
-          className="scroll-hero-bg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 - scrollProgress }}
-          transition={{ duration: 0.1 }}
-        >
-          <img src={bgImageSrc} alt="" className="scroll-hero-bg-img" />
-          <div className="scroll-hero-bg-veil" />
-        </motion.div>
-
         <div className="scroll-hero-inner">
           <div className="scroll-hero-media-wrap">
             <div
@@ -163,6 +154,10 @@ function ScrollExpandMedia({
                     disablePictureInPicture
                     disableRemotePlayback
                     onError={(e) => {
+                      // El error puede burbujear en fase de captura desde un <source> hijo que
+                      // no matchea su `media` (candidato descartado, no es un fallo real) — solo
+                      // el <video> mismo puede tener un MediaError genuino en `.error`.
+                      if (e.target.tagName !== 'VIDEO') return
                       console.error('Hero video failed to load:', e.target.error)
                       setVideoFailed(true)
                     }}
@@ -193,6 +188,10 @@ function ScrollExpandMedia({
                 </div>
               )}
 
+              {decorationSrc && (
+                <img src={decorationSrc} alt="" className="scroll-hero-decoration" />
+              )}
+
               <div className="scroll-hero-caption">
                 {date && (
                   <p className="scroll-hero-eyebrow" style={{ transform: `translateX(-${textTranslate}vw)` }}>
@@ -215,6 +214,17 @@ function ScrollExpandMedia({
                 {restChunk}
               </motion.h1>
             </div>
+
+            {tagline && (
+              <motion.p
+                className="scroll-hero-tagline"
+                initial={{ opacity: 1 }}
+                animate={{ opacity: Math.max(0, 1 - scrollProgress * 3) }}
+                transition={{ duration: 0.2 }}
+              >
+                {tagline}
+              </motion.p>
+            )}
           </div>
 
           <motion.div

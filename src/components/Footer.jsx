@@ -1,12 +1,13 @@
 import { PHONE_DISPLAY } from '../constants.js'
 import { IconInstagram, IconFacebook } from './icons.jsx'
+import logo from '@/assets/brand/logo.jpg'
 
 function Footer() {
   return (
     <footer className="footer">
       <div className="container footer-inner">
         <div className="footer-brand">
-          <img src="/logo.jpg" alt="Logo de ChapiYork" className="footer-logo" loading="lazy" />
+          <img src={logo} alt="Logo de ChapiYork" className="footer-logo" loading="lazy" />
           ChapiYork
         </div>
 
